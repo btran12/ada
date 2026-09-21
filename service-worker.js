@@ -1,4 +1,4 @@
-const CACHE_NAME = 'robot-eyes-v1';
+const CACHE_NAME = 'robot-eyes-v2';
 const APP_SHELL = ['./', './index.html', './README.md', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {

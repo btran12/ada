@@ -291,7 +291,6 @@
     position:absolute; left:-8%; width:116%; height:55%;
     background:#000; z-index:4; transition:transform .16s ease;
   }
-  .sleepy .lid,
   .surprised .lid,
   .curious .lid,
   .happy .lid,
@@ -323,8 +322,13 @@
 
   .blink .lid.top { transform:translateY(82%); }
   .blink .lid.bottom { transform:translateY(-82%); }
-  .sleepy .lid.top { transform:translateY(38%); }
-  .sleepy .lid.bottom { transform:translateY(-18%); }
+  .sleepy .eye {
+    animation:sleepySquintClip 7.6s ease forwards;
+    clip-path:inset(0 0 0 0);
+  }
+  .sleepy .lid { display:none; }
+  .sleepy .eye::before,
+  .sleepy .eye::after { display:none; }
   .surprised .eye { animation:surprisedEyes .5s ease both; }
   .surprised .lid.top { transform:translateY(-12%) rotate(-4deg); }
   .curious .eye:first-child { animation:curiousLeft .7s ease both; }
@@ -373,14 +377,14 @@
   .round .eye { animation:roundMorph 1.1s ease both; }
   .blob .eye { animation:blobMorph 1s cubic-bezier(.2,.8,.2,1) both; }
 
-  .happy .eye, .sad .eye, .angry .eye, .love .eye, .sleepy .eye {
+  .happy .eye, .sad .eye, .angry .eye, .love .eye {
     animation-name:emotionPanelToGlyph;
     animation-duration:.55s;
     animation-timing-function:ease;
     animation-fill-mode:both;
   }
   .happy .eye::before, .sad .eye::before, .crying .eye::before,
-  .love .eye::before, .sleepy .eye::before { animation:glyphReveal .55s ease both; }
+  .love .eye::before { animation:glyphReveal .55s ease both; }
   .angry #left::before { animation:angryGlyphRevealLeft .55s ease both; }
   .angry #right::before { animation:angryGlyphRevealRight .55s ease both; }
   .excited .eye, .surprised .eye { animation:emotionPanelPulse .55s ease both; }
@@ -396,13 +400,13 @@
   .round .eye { animation:emotionPanelRound 1.1s ease both; }
   .blob .eye { animation:emotionPanelBlob 1s cubic-bezier(.2,.8,.2,1) both; }
 
-  .happy .eye, .sad .eye, .crying .eye, .angry .eye, .love .eye, .sleepy .eye {
+  .happy .eye, .sad .eye, .crying .eye, .angry .eye, .love .eye {
     background:transparent; box-shadow:none; overflow:visible;
   }
-  .happy .lid, .sad .lid, .crying .lid, .angry .lid, .love .lid, .sleepy .lid,
+  .happy .lid, .sad .lid, .crying .lid, .angry .lid, .love .lid,
   .happy .eye::after, .sad .eye::after, .crying .eye::after, .angry .eye::after,
-  .love .eye::after, .sleepy .eye::after { display:none; }
-  .happy .eye::before, .sad .eye::before, .crying .eye::before, .sleepy .eye::before {
+  .love .eye::after { display:none; }
+  .happy .eye::before, .sad .eye::before, .crying .eye::before {
     content:""; position:absolute; left:9%; right:9%; height:38%;
     border:11px solid #28e3ed; filter:drop-shadow(0 0 9px rgba(40,227,237,.8));
   }
@@ -422,10 +426,6 @@
   }
   .crying .eye::before {
     top:22%; border-top:0; border-radius:0 0 50% 50%;
-  }
-  .sleepy .eye::before {
-    top:44%; height:4%; border:0; border-top:11px solid #28e3ed;
-    border-radius:50%;
   }
   .angry .eye::before {
     content:""; position:absolute; left:10%; right:10%; top:42%; height:0;
@@ -501,6 +501,33 @@
   @keyframes dizzyTwinkle {
     0%,100% { opacity:.25; transform:scale(.75) rotate(0deg); }
     50% { opacity:1; transform:scale(1.18) rotate(16deg); }
+  }
+  @keyframes sleepyTopSequence {
+    0% { transform:translateY(0); }
+    16% { transform:translateY(84%); }
+    28% { transform:translateY(0); }
+    42% { transform:translateY(84%); }
+    56% { transform:translateY(0); }
+    84% { transform:translateY(70%); }
+    100% { transform:translateY(96%); }
+  }
+  @keyframes sleepyBottomSequence {
+    0% { transform:translateY(0); }
+    16% { transform:translateY(-84%); }
+    28% { transform:translateY(0); }
+    42% { transform:translateY(-84%); }
+    56% { transform:translateY(0); }
+    84% { transform:translateY(-70%); }
+    100% { transform:translateY(-96%); }
+  }
+  @keyframes sleepySquintClip {
+    0% { clip-path:inset(0 0 0 0); }
+    16% { clip-path:inset(47% 0 47% 0); }
+    28% { clip-path:inset(0 0 0 0); }
+    42% { clip-path:inset(47% 0 47% 0); }
+    56% { clip-path:inset(0 0 0 0); }
+    84% { clip-path:inset(38% 0 38% 0); }
+    100% { clip-path:inset(46% 0 46% 0); }
   }
   @keyframes lidWobble {
     to { transform:translateY(5px) rotate(4deg); }
@@ -848,17 +875,25 @@
     document.body.classList.toggle('quiet', quietMode);
     if (quietMode) {
       sleeping = true;
-      setState('sleepy', 0, { force:true });
+      if (!face.classList.contains('sleepy')) setState('sleepy', 0, { force:true });
       status.textContent = 'QUIET MODE';
       return;
     }
     if (isNearBedtime()) {
       sleeping = true;
-      setState('sleepy', 0, { force:true });
+      if (!face.classList.contains('sleepy')) setState('sleepy', 0, { force:true });
       status.textContent = 'WINDING DOWN';
       return;
     }
     sleeping = false;
+    if (face.classList.contains('sleepy')) {
+      face.classList.remove('sleepy');
+      currentState = 'idle';
+      localStorage.setItem('robot-eyes-state', currentState);
+    }
+    if (status.textContent === 'QUIET MODE' || status.textContent === 'WINDING DOWN') {
+      status.textContent = 'IDLE';
+    }
   }
 
   function setState(name, ms=700, opts={}) {
