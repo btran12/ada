@@ -16,6 +16,7 @@
     display:flex;
     align-items:center;
     justify-content:center;
+    --theme-hue: 0deg;
   }
   #stage {
     position:relative; width:100vw; height:100dvh; overflow:hidden;
@@ -38,7 +39,56 @@
     gap:clamp(18px, 6vw, 65px);
     transition:transform .18s cubic-bezier(.2,.8,.2,1);
     will-change:transform;
+    filter:hue-rotate(var(--theme-hue));
   }
+  #mouth, #love-particles, #sleep-particles, #dizzy-stars, #mood-effects {
+    filter:hue-rotate(var(--theme-hue));
+  }
+  #settings-toggle {
+    position:absolute; z-index:12; right:max(12px, env(safe-area-inset-right));
+    top:max(12px, env(safe-area-inset-top));
+    border:1px solid rgba(130,240,255,.45); border-radius:999px;
+    background:rgba(0,18,24,.72); color:#b5f7ff; padding:8px 12px;
+    font:600 11px ui-monospace, monospace; letter-spacing:.7px;
+  }
+  #setup-overlay {
+    position:absolute; inset:0; z-index:20; display:none;
+    background:radial-gradient(circle at 25% 20%, rgba(36,220,255,.12), transparent 45%), rgba(0,0,0,.84);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  #setup-overlay.show { display:flex; }
+  #setup-card {
+    width:min(92vw, 460px); border:1px solid rgba(114,236,255,.4);
+    border-radius:18px; padding:18px; background:rgba(2,14,20,.92);
+    box-shadow:0 14px 55px rgba(0,0,0,.45), inset 0 0 40px rgba(36,220,255,.08);
+    backdrop-filter:blur(10px);
+  }
+  #setup-card h2 { margin:0 0 8px; font-size:20px; letter-spacing:.2px; }
+  #setup-card p { margin:0 0 14px; opacity:.78; font-size:13px; }
+  .setup-row { display:flex; gap:10px; margin-bottom:10px; align-items:center; }
+  .setup-row label { min-width:115px; opacity:.88; font-size:12px; letter-spacing:.4px; }
+  .setup-row input, .setup-row select {
+    flex:1; border:1px solid rgba(114,236,255,.35); border-radius:10px;
+    background:rgba(0,20,28,.8); color:#d9fbff; padding:8px 9px; font-size:13px;
+  }
+  .setup-row input[type="checkbox"] { flex:0; width:18px; height:18px; }
+  #setup-save {
+    width:100%; margin-top:8px; border:1px solid rgba(114,236,255,.55); border-radius:12px;
+    background:linear-gradient(180deg, rgba(51,233,255,.35), rgba(18,151,170,.35));
+    color:#e8fdff; padding:11px 12px; font:700 12px ui-monospace, monospace; letter-spacing:1px;
+  }
+  #setup-permissions {
+    margin-top:8px; padding:9px 10px; border:1px solid rgba(114,236,255,.25); border-radius:10px;
+    background:rgba(0,18,24,.45); color:#bfefff; font:600 11px/1.5 ui-monospace, monospace;
+    letter-spacing:.4px;
+  }
+  .quiet #hint { opacity:.08; }
+  .dancing .eye { animation:danceEyes .36s ease-in-out infinite alternate; }
+  .dancing #mouth { animation:danceMouth .26s ease-in-out infinite alternate; }
+  .dancing #mood-effects { display:block; }
+  .dancing #mood-effects span { animation:danceSpark 0.6s ease-in-out infinite; }
+  .dancing #mood-effects span:nth-child(2) { animation-delay:.16s; }
+  .dancing #mood-effects span:nth-child(3) { animation-delay:.32s; }
   #mouth {
     position:absolute; left:50%; top:calc(50% + clamp(92px, 23vw, 190px));
     width:clamp(38px, 9vw, 76px); height:18px; transform:translateX(-50%);
@@ -261,6 +311,7 @@
   .searching .lid,
   .powered .lid,
   .distracted .lid,
+  .dancing .lid,
   .round .lid,
   .blob .lid {
     display:none;
@@ -621,6 +672,9 @@
   @keyframes swipeRight {
     50% { transform:translateX(28px) rotate(5deg); }
   }
+  @keyframes danceEyes { to { transform:translateY(-7px) rotate(3deg) scale(1.06); } }
+  @keyframes danceMouth { to { transform:translateX(-50%) scaleX(1.12); } }
+  @keyframes danceSpark { 50% { transform:translateY(-12px) scale(1.2); opacity:1; } }
   @media (prefers-reduced-motion:reduce) {
     *, *::before, *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
   }
@@ -629,6 +683,20 @@
 <body>
 <div id="stage">
   <div id="stars"></div>
+  <button id="settings-toggle" type="button">SETTINGS</button>
+  <div id="setup-overlay" aria-hidden="true">
+    <form id="setup-card">
+      <h2>Companion Setup</h2>
+      <p>Set your companion's style and routine. You can change this anytime.</p>
+      <div class="setup-row"><label for="setup-color">Color theme</label><select id="setup-color"><option value="cyan">Cyan</option><option value="mint">Mint</option><option value="pink">Pink</option><option value="gold">Gold</option><option value="violet">Violet</option></select></div>
+      <div class="setup-row"><label for="setup-bed">Bed time</label><input id="setup-bed" type="time" value="20:30"></div>
+      <div class="setup-row"><label for="setup-wake">Wake time</label><input id="setup-wake" type="time" value="07:00"></div>
+      <div class="setup-row"><label for="setup-voice">Voice access</label><input id="setup-voice" type="checkbox"></div>
+      <div class="setup-row"><label for="setup-calm">Calm mode</label><input id="setup-calm" type="checkbox"></div>
+      <div id="setup-permissions" aria-live="polite">MIC: UNKNOWN | CAMERA: UNKNOWN | MOTION: UNKNOWN</div>
+      <button id="setup-save" type="submit">SAVE AND START</button>
+    </form>
+  </div>
   <div id="hint">TAP • HOLD • TILT • SHAKE • MOVE ME</div>
   <div id="emotion-controls" aria-label="Test robot emotions">
     <button data-emotion="happy">HAPPY</button>
@@ -670,18 +738,128 @@
   const eyes = [...document.querySelectorAll('.eye')];
   const status = document.getElementById('status');
   const enable = document.getElementById('enable');
+  const settingsToggle = document.getElementById('settings-toggle');
+  const setupOverlay = document.getElementById('setup-overlay');
+  const setupCard = document.getElementById('setup-card');
+  const setupColor = document.getElementById('setup-color');
+  const setupBed = document.getElementById('setup-bed');
+  const setupWake = document.getElementById('setup-wake');
+  const setupVoice = document.getElementById('setup-voice');
+  const setupCalm = document.getElementById('setup-calm');
+  const setupPermissions = document.getElementById('setup-permissions');
   let audioCtx = null, lastSound = 0, lastShake = 0, lastOrientationSound = 0;
   let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
   let lastMove = performance.now(), sleeping = false;
   let lastAccel = {x:0,y:0,z:0};
   let pointerStart = null, holdTimer = null;
   let microphoneStream = null, analyser = null, cameraStream = null, cameraTimer = null;
-  let lastLoudSound = 0, lastFaceAt = 0;
+  let lastLoudSound = 0, lastFaceAt = 0, lastDanceBeat = 0;
   let currentState = localStorage.getItem('robot-eyes-state') || 'idle';
   let stateTimer = null, stateVersion = 0;
   const EMOTION_PREVIEW_MS = 3000;
   const MANUAL_EMOTION_HOLD_MS = 10000;
+  const SETTINGS_KEY = 'robot-eyes-settings-v1';
+  const QUIET_CHECK_INTERVAL_MS = 30000;
   let manualEmotionUntil = 0;
+  let quietMode = false;
+  let micPermissionState = 'unknown';
+  let cameraPermissionState = 'unknown';
+  let motionPermissionState = 'unknown';
+
+  const defaultSettings = {
+    color: 'cyan',
+    bedTime: '20:30',
+    wakeTime: '07:00',
+    voiceAccess: false,
+    calmMode: false
+  };
+  let appSettings = { ...defaultSettings };
+
+  const themeHueMap = {
+    cyan: '0deg',
+    mint: '-35deg',
+    pink: '120deg',
+    gold: '175deg',
+    violet: '78deg'
+  };
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(SETTINGS_KEY);
+      if (!raw) return null;
+      return { ...defaultSettings, ...JSON.parse(raw) };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function saveSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
+  }
+
+  function applyTheme() {
+    const hue = themeHueMap[appSettings.color] || '0deg';
+    document.body.style.setProperty('--theme-hue', hue);
+  }
+
+  function minutesFromTime(text) {
+    const [h, m] = text.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function isInQuietWindow(now = new Date()) {
+    const current = now.getHours() * 60 + now.getMinutes();
+    const bed = minutesFromTime(appSettings.bedTime);
+    const wake = minutesFromTime(appSettings.wakeTime);
+    if (bed === wake) return false;
+    if (bed < wake) return current >= bed && current < wake;
+    return current >= bed || current < wake;
+  }
+
+  function isNearBedtime(now = new Date()) {
+    const current = now.getHours() * 60 + now.getMinutes();
+    const bed = minutesFromTime(appSettings.bedTime);
+    const distance = (bed - current + 1440) % 1440;
+    return distance > 0 && distance <= 45;
+  }
+
+  function openSetup() {
+    setupColor.value = appSettings.color;
+    setupBed.value = appSettings.bedTime;
+    setupWake.value = appSettings.wakeTime;
+    setupVoice.checked = !!appSettings.voiceAccess;
+    setupCalm.checked = !!appSettings.calmMode;
+    renderPermissionSummary();
+    setupOverlay.classList.add('show');
+    setupOverlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function renderPermissionSummary() {
+    setupPermissions.textContent = `MIC: ${micPermissionState.toUpperCase()} | CAMERA: ${cameraPermissionState.toUpperCase()} | MOTION: ${motionPermissionState.toUpperCase()}`;
+  }
+
+  function closeSetup() {
+    setupOverlay.classList.remove('show');
+    setupOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function syncRoutineState(force = false) {
+    quietMode = isInQuietWindow();
+    document.body.classList.toggle('quiet', quietMode);
+    if (quietMode) {
+      sleeping = true;
+      setState('sleepy', 0, { force:true });
+      status.textContent = 'QUIET MODE';
+      return;
+    }
+    if (isNearBedtime()) {
+      sleeping = true;
+      setState('sleepy', 0, { force:true });
+      status.textContent = 'WINDING DOWN';
+      return;
+    }
+    sleeping = false;
+  }
 
   function setState(name, ms=700, opts={}) {
     const now = Date.now();
@@ -693,7 +871,7 @@
       clearTimeout(stateTimer);
       stateTimer = null;
     }
-    face.classList.remove('blink','sleepy','surprised','curious','happy','sad','crying','angry','love','hot','cold','thinking','scared','proud','excited','confused','alert','dizzy','searching','powered','distracted','round','blob');
+    face.classList.remove('blink','sleepy','surprised','curious','happy','sad','crying','angry','love','hot','cold','thinking','scared','proud','excited','confused','alert','dizzy','searching','powered','distracted','round','blob','dancing');
     if (name) face.classList.add(name);
     currentState=name || 'idle';
     localStorage.setItem('robot-eyes-state', currentState);
@@ -717,16 +895,18 @@
     try {
       initAudio();
       const now = audioCtx.currentTime;
+      const loudness = appSettings.calmMode ? 0.6 : 1;
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
       o.type = type; o.frequency.setValueAtTime(freq, now);
       if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq+slide), now+duration);
       g.gain.setValueAtTime(.0001, now);
-      g.gain.exponentialRampToValueAtTime(volume, now+.008);
+      g.gain.exponentialRampToValueAtTime(volume * loudness, now+.008);
       g.gain.exponentialRampToValueAtTime(.0001, now+duration);
       o.connect(g).connect(audioCtx.destination); o.start(now); o.stop(now+duration+.02);
     } catch(e) {}
   }
   function boop(kind='curious') {
+    if (quietMode) return;
     const t = performance.now();
     if (t-lastSound < 70) return;
     lastSound=t;
@@ -770,14 +950,15 @@
   animate();
 
   function blink() {
-    if (sleeping) return;
+    if (sleeping || quietMode) return;
     setState('blink',180);
     if (Math.random()>.25) boop('idle');
   }
   function idle() {
-    if (performance.now()-lastMove > 14000 && !sleeping) {
-      sleeping=true; setState('sleepy',0); status.textContent='SLEEP';
-    }
+    syncRoutineState();
+    if (quietMode) return;
+    if (isNearBedtime()) return;
+    sleeping = false;
     if (!sleeping) {
       lookAt((Math.random()*2-1)*.55,(Math.random()*2-1)*.35);
       if (Math.random() < .35) {
@@ -809,6 +990,7 @@
     holdTimer=setTimeout(() => { setState('curious',0); boop('hold'); },420);
     const r=stage.getBoundingClientRect();
     lookAt((e.clientX-r.left-r.width/2)/(r.width/2), (e.clientY-r.top-r.height/2)/(r.height/2));
+    if (quietMode) return;
     setState('surprised',260); boop('tap');
     if (navigator.vibrate) navigator.vibrate(18);
   });
@@ -823,6 +1005,7 @@
     if (!pointerStart) return;
     const dx=e.clientX-pointerStart.x, dy=e.clientY-pointerStart.y;
     if (Math.hypot(dx,dy)>55 && Math.abs(dx)>Math.abs(dy)) {
+      if (quietMode) { pointerStart=null; return; }
       const direction=dx<0?'left':'right';
       face.classList.remove('swipe-left','swipe-right');
       void face.offsetWidth;
@@ -840,6 +1023,11 @@
   document.getElementById('emotion-controls').addEventListener('click', e => {
     const button=e.target.closest('[data-emotion]');
     if (!button) return;
+    if (quietMode) {
+      setState('sleepy', 0, { force:true });
+      status.textContent='QUIET MODE';
+      return;
+    }
     const emotion=button.dataset.emotion;
     sleeping=false; lastMove=performance.now();
     setState(emotion, MANUAL_EMOTION_HOLD_MS, { lock:true, force:true });
@@ -852,6 +1040,7 @@
   });
 
   function motion(e) {
+    if (quietMode) return;
     const a=e.accelerationIncludingGravity || e.acceleration;
     if(!a) return;
     const x=a.x||0,y=a.y||0,z=a.z||0;
@@ -876,38 +1065,63 @@
     const gy=Math.max(-1,Math.min(1,(e.beta||0)/45));
     lookAt(gx,gy);
     face.style.transform=`rotate(${Math.max(-8,Math.min(8,(e.gamma||0)/7))}deg)`;
-    if (Math.abs(e.gamma||0)>8 && performance.now()-lastOrientationSound>900) {
+    if (!quietMode && Math.abs(e.gamma||0)>8 && performance.now()-lastOrientationSound>900) {
       lastOrientationSound=performance.now(); boop('servo');
     }
   }
   window.addEventListener('deviceorientation', orientation);
 
   async function startMicrophone() {
-    if (microphoneStream || !navigator.mediaDevices?.getUserMedia) return;
+    if (!appSettings.voiceAccess || microphoneStream || !navigator.mediaDevices?.getUserMedia) return;
     try {
+      initAudio();
       microphoneStream=await navigator.mediaDevices.getUserMedia({audio:true});
+      micPermissionState = 'granted';
+      renderPermissionSummary();
       const source=audioCtx.createMediaStreamSource(microphoneStream);
       analyser=audioCtx.createAnalyser(); analyser.fftSize=512; source.connect(analyser);
       const data=new Uint8Array(analyser.fftSize);
+      const freqData=new Uint8Array(analyser.frequencyBinCount);
       const listen=() => {
         if (!analyser) return;
         analyser.getByteTimeDomainData(data);
+        analyser.getByteFrequencyData(freqData);
         let total=0;
         data.forEach(value => { const sample=(value-128)/128; total+=sample*sample; });
         const volume=Math.sqrt(total/data.length);
-        if (volume>.18 && performance.now()-lastLoudSound>1300) {
+        let bass=0, mids=0;
+        for (let i=2; i<20; i++) bass += freqData[i];
+        for (let i=20; i<80; i++) mids += freqData[i];
+        const beat=Math.max(0, mids - bass * 0.7);
+        if (!quietMode && volume>.1 && beat>1700 && performance.now()-lastDanceBeat>1800) {
+          lastDanceBeat=performance.now();
+          setState('dancing',1300);
+          boop('happy');
+        }
+        if (!quietMode && volume>.18 && performance.now()-lastLoudSound>1300) {
           lastLoudSound=performance.now(); setState('alert',700); boop('alert');
         }
         requestAnimationFrame(listen);
       };
       listen();
-    } catch (error) {}
+    } catch (error) {
+      micPermissionState = 'denied';
+      renderPermissionSummary();
+    }
+  }
+
+  function stopMicrophone() {
+    if (microphoneStream) microphoneStream.getTracks().forEach(track => track.stop());
+    microphoneStream=null;
+    analyser=null;
   }
 
   async function startCamera() {
     if (cameraStream || !navigator.mediaDevices?.getUserMedia || !('FaceDetector' in window)) return;
     try {
       cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+      cameraPermissionState = 'granted';
+      renderPermissionSummary();
       const video=document.createElement('video');
       video.srcObject=cameraStream; video.muted=true; video.playsInline=true;
       await video.play();
@@ -927,11 +1141,16 @@
           }
         } catch (error) {}
       },900);
-    } catch (error) {}
+    } catch (error) {
+      cameraPermissionState = 'denied';
+      renderPermissionSummary();
+    }
   }
 
   async function startOptionalSensors() {
-    await Promise.allSettled([startMicrophone(),startCamera()]);
+    const starts=[startCamera()];
+    if (appSettings.voiceAccess) starts.push(startMicrophone());
+    await Promise.allSettled(starts);
     if (navigator.getBattery) {
       try {
         const battery=await navigator.getBattery();
@@ -948,8 +1167,9 @@
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return;
+    syncRoutineState();
     lastMove=performance.now(); sleeping=false;
-    setState('distracted',650); boop('alert');
+    if (!quietMode) { setState('distracted',650); boop('alert'); }
   });
 
   async function enableMotion() {
@@ -963,12 +1183,16 @@
         const r=await DeviceOrientationEvent.requestPermission();
         if(r!=='granted') throw new Error('orientation denied');
       }
+      motionPermissionState = 'granted';
+      renderPermissionSummary();
       startOptionalSensors();
       enable.classList.remove('show');
       status.textContent='ONLINE';
       setTimeout(()=>status.textContent='IDLE',1000);
       boop('tap');
     } catch(e) {
+      motionPermissionState = 'denied';
+      renderPermissionSummary();
       status.textContent='TOUCH STILL WORKS';
       enable.textContent='MOTION PERMISSION DENIED';
       setTimeout(()=>enable.classList.remove('show'),1800);
@@ -976,10 +1200,48 @@
   }
   enable.addEventListener('click', enableMotion);
 
+  settingsToggle.addEventListener('click', () => openSetup());
+  setupOverlay.addEventListener('click', e => {
+    if (e.target === setupOverlay && localStorage.getItem(SETTINGS_KEY)) closeSetup();
+  });
+  setupCard.addEventListener('submit', e => {
+    e.preventDefault();
+    appSettings = {
+      color: setupColor.value,
+      bedTime: setupBed.value || defaultSettings.bedTime,
+      wakeTime: setupWake.value || defaultSettings.wakeTime,
+      voiceAccess: setupVoice.checked,
+      calmMode: setupCalm.checked
+    };
+    saveSettings();
+    applyTheme();
+    syncRoutineState(true);
+    if (appSettings.voiceAccess) startMicrophone();
+    else stopMicrophone();
+    closeSetup();
+  });
+
   // iOS/Safari commonly requires a user gesture before motion sensors work.
   if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission==='function') {
     enable.classList.add('show');
+    motionPermissionState = 'prompt';
+  } else {
+    motionPermissionState = 'auto';
   }
+  if ('FaceDetector' in window) cameraPermissionState = 'prompt';
+  else cameraPermissionState = 'unsupported';
+  micPermissionState = appSettings.voiceAccess ? 'prompt' : 'disabled';
+  renderPermissionSummary();
+  const savedSettings = loadSettings();
+  if (savedSettings) {
+    appSettings = savedSettings;
+    micPermissionState = appSettings.voiceAccess ? 'prompt' : 'disabled';
+    applyTheme();
+    syncRoutineState(true);
+  } else {
+    openSetup();
+  }
+  setInterval(() => syncRoutineState(), QUIET_CHECK_INTERVAL_MS);
   window.addEventListener('load', () => {
     setTimeout(()=>{ tone(220,.12,'sine',.018,180); setTimeout(()=>tone(500,.09,'triangle',.018,150),110); },350);
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {});
